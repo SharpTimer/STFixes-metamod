@@ -74,8 +74,6 @@ namespace CTriggerGravityHandler
 
 	void OnEndTouch(CBaseEntity* pEntity, CBaseEntity* pOther)
 	{
-		if (pOther->IsPawn())
-			pOther->SetGravityScale(1);
 	}
 
 	static void Shutdown()

@@ -342,7 +342,7 @@ const char *CS2Fixes::GetLicense()
 const char *CS2Fixes::GetVersion()
 {
 #ifndef CS2FIXES_VERSION
-#define CS2FIXES_VERSION "1.3-dev"
+#define CS2FIXES_VERSION "1.4-dev"
 #endif
 
 	return CS2FIXES_VERSION; // defined by the build script
