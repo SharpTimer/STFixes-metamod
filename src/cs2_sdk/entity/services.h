@@ -261,15 +261,14 @@ struct SubtickMove
 	bool pressed;
 };
 
-// Size: 0xE8
-class CMoveData
+class CMoveDataBase
 {
 public:
-	CMoveData() = default;
-
-	CMoveData(const CMoveData &source)
+	CMoveDataBase() = default;
+	CMoveDataBase(const CMoveDataBase &source)
 		// clang-format off
-		: moveDataFlags {source.moveDataFlags}, 
+		: m_bHasZeroFrametime {source.m_bHasZeroFrametime},
+		m_bIsLateCommand {source.m_bIsLateCommand}, 
 		m_nPlayerHandle {source.m_nPlayerHandle},
 		m_vecAbsViewAngles {source.m_vecAbsViewAngles},
 		m_vecViewAngles {source.m_vecViewAngles},
@@ -279,23 +278,16 @@ public:
 		m_flUpMove {source.m_flUpMove},
 		m_vecVelocity {source.m_vecVelocity}, 
 		m_vecAngles {source.m_vecAngles},
+		m_vecUnknown {source.m_vecUnknown},
 		m_bHasSubtickInputs {source.m_bHasSubtickInputs},
+		unknown {source.unknown},
 		m_collisionNormal {source.m_collisionNormal},
-		m_groundNormal {source.m_groundNormal}, 
+		m_groundNormal {source.m_groundNormal},
 		m_vecAbsOrigin {source.m_vecAbsOrigin},
 		m_nTickCount {source.m_nTickCount},
 		m_nTargetTick {source.m_nTargetTick},
-		m_flSubtickEndFraction {source.m_flSubtickEndFraction},
 		m_flSubtickStartFraction {source.m_flSubtickStartFraction},
-		m_outWishVel {source.m_outWishVel},
-		m_vecOldAngles {source.m_vecOldAngles}, 
-		m_flMaxSpeed {source.m_flMaxSpeed}, 
-		m_flClientMaxSpeed {source.m_flClientMaxSpeed},
-		m_flSubtickAccelSpeed {source.m_flSubtickAccelSpeed}, 
-		m_bJumpedThisTick {source.m_bJumpedThisTick},
-		m_bOnGround {source.m_bOnGround},
-		m_bShouldApplyGravity {source.m_bShouldApplyGravity}, 
-		m_bGameCodeMovedPlayer {source.m_bGameCodeMovedPlayer}
+		m_flSubtickEndFraction {source.m_flSubtickEndFraction}
 	// clang-format on
 	{
 		for (int i = 0; i < source.m_AttackSubtickMoves.Count(); i++)
@@ -330,7 +322,8 @@ public:
 	}
 
 public:
-	uint8_t moveDataFlags;
+	bool m_bHasZeroFrametime: 1;
+	bool m_bIsLateCommand: 1;
 	CHandle<CCSPlayerPawn> m_nPlayerHandle;
 	QAngle m_vecAbsViewAngles;
 	QAngle m_vecViewAngles;
@@ -339,28 +332,42 @@ public:
 	float m_flSideMove; // Warning! Flipped compared to CS:GO, moving right gives negative value
 	float m_flUpMove;
 	Vector m_vecVelocity;
-	Vector m_vecAngles;
+	QAngle m_vecAngles;
+	Vector m_vecUnknown;
 	CUtlVector<SubtickMove> m_SubtickMoves;
 	CUtlVector<SubtickMove> m_AttackSubtickMoves;
 	bool m_bHasSubtickInputs;
+	float unknown; // Set to 1.0 during SetupMove, never change during gameplay. Is apparently used for weapon services stuff.
 	CUtlVector<touchlist_t> m_TouchList;
 	Vector m_collisionNormal;
 	Vector m_groundNormal; // unsure
 	Vector m_vecAbsOrigin;
 	int32_t m_nTickCount;
 	int32_t m_nTargetTick;
-	float m_flSubtickEndFraction;
 	float m_flSubtickStartFraction;
-	bool m_nGameModeMovedPlayer;
+	float m_flSubtickEndFraction;
+};
+
+class CMoveData : public CMoveDataBase
+{
+public:
+	CMoveData() = default;
+
+	CMoveData(const CMoveData &source)
+		: CMoveDataBase(source), m_outWishVel {source.m_outWishVel}, m_vecOldAngles {source.m_vecOldAngles},
+		  m_vecAccelPerSecond {source.m_vecAccelPerSecond}, m_vecInputRotated {source.m_vecInputRotated}, m_flMaxSpeed {source.m_flMaxSpeed}
+	{
+	}
+
 	Vector m_outWishVel;
-	Vector m_vecOldAngles;
+	QAngle m_vecOldAngles;
+	Vector m_vecAccelPerSecond; // related to accel and friction
+	Vector m_vecInputRotated;
 	float m_flMaxSpeed;
 	float m_flClientMaxSpeed;
-	float m_flSubtickAccelSpeed; // Related to ground acceleration subtick stuff with sv_stopspeed and friction
-	bool m_bJumpedThisTick;      // something to do with basevelocity and the tick the player jumps
-	bool m_bOnGround;
-	bool m_bShouldApplyGravity;
+	float m_flFrictionDecel;
+	bool m_bInAir;
 	bool m_bGameCodeMovedPlayer; // true if usercmd cmd number == (m_nGameCodeHasMovedPlayerAfterCommand + 1)
 };
 
-static_assert(sizeof(CMoveData) == 256, "Class didn't match expected size");
+static_assert(sizeof(CMoveData) == 296, "Class didn't match expected size");

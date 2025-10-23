@@ -182,7 +182,6 @@ void* FASTCALL Detour_ProcessUsercmds(CCSPlayerController* pController, CUserCmd
 	return ProcessUsercmds(pController, cmds, numcmds, paused, margin);
 }
 
-
 bool InitDetours(CGameConfig *gameConfig)
 {
 	bool success = true;
