@@ -169,8 +169,11 @@ void* FASTCALL Detour_ProcessUsercmds(CCSPlayerController* pController, CUserCmd
 		{
 			uint64 button = iterator->button();
 
-			// Remove normal subtick movement inputs by button & subtick movement viewangles by pitch/yaw
-			if ((button >= IN_JUMP && button <= IN_MOVERIGHT && button != IN_USE) || iterator->pitch_delta() != 0.0f || iterator->yaw_delta() != 0.0f)
+			// Remove normal subtick movement inputs by button & subtick movement viewangles by pitch/yaw.
+			// IN_JUMP is exempt: since the CS2 Season 5 jump rework (buffered jump presses), a mousewheel
+			// +jump press exists only in the subtick moves — stripping it clips/eats scroll jumps entirely,
+			// while held space survives in the tick-boundary button state.
+			if ((button > IN_JUMP && button <= IN_MOVERIGHT && button != IN_USE) || iterator->pitch_delta() != 0.0f || iterator->yaw_delta() != 0.0f)
 				subtickMoves->erase(iterator);
 			else
 				iterator++;
